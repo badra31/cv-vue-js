@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="app">
+        <!-- /*****************PARTIE FORMULAIRE*******************/ -->
+
+        <div class="form">
+            <h1>Application CV</h1>
+            <label>Nom: <input type="text" v-model="name">
+                Prénom: <input type="text" v-model="firstName">
+                Date de naissance: <input type="date" v-model="birthday">
+                Adresse: <input type="text" v-model="adresse">
+                Voiture:
+                <label>Oui<input type="radio" name="select" v-bind:value="true" v-model="car">|</label>
+                <label>Non<input type="radio" name="select" v-bind:value="false" v-model="car"></label>
+            </label>
+        </div>
+
+
+        <div class="form">
+            <h2>Formation</h2>
+            <label>
+                Ajouter une expèrience professionelle: <input type="text" id="fpro">
+                de: <input type="date" id="formdebut"> à <input type="date" id="formfin">
+            </label>
+            <button v-on:click="addForm()">Ajouter</button>
+        </div>
+
+
+        <div class="form">
+            <h2>Expérience Professionelles</h2>
+            <label>
+                Ajouter une expèrience professionelle: <input type="text" id="expro">
+                de: <input type="date" id="expdebut"> à <input type="date" id="expfin">
+            </label>
+            <button v-on:click="addExp()">Ajouter</button>
+        </div>
+
+
+        <div class="form">
+            <h2>Compétences</h2>
+            <label>Ajouter une compétence <input type="text" v_model="skill" id="comp"> </label>
+            <button v-on:click="addSkill()">Ajouter</button>
+        </div>
+
+        <div class="form">
+            <h2>Enregistré le CV</h2>
+            <button v-on:click="save()">Enregistrer</button>
+            <button v-on:click="show()">Afficher dernier CV</button>
+            <button v-on:click="remove" style="background-color: red;">Supprimer Sauvegarde</button>
+        </div>
+
+        <h1>Rendu de votre CV</h1>
+
+        <!-- /*****************PARTIE CV*******************/ -->
+
+        <div class="cv">
+            <hr>
+            <user :name="name" :firstname="firstName" :birthday="birthday" :adresse="adresse" :car="car"></user>
+            <formation :formations="formations"></formation>
+            <experience :experiences="experiences"></experience>
+            <skill :skills="skills"></skill>
+        </div>
+
+    </div>
+
+
+
+    <script>
+
+        let user = {
+            props: ['name', 'firstname', 'birthday', 'adresse', 'car'],
+            template: `
+            <div>
+                <h1>{{nomComplet | capitalize}}</h1>
+                <p v-if="birthday !==null">age: {{age}} ans</p>
+                <p>Adresse: {{adresse}} </p>
+               <p>voiture :<span v-if="car==true" style='color:green'>oui</span><span v-else style='color:red'>non </span></p>
+            </div>
+            `,
+
+            computed: {
+                nomComplet: function () {
+                    return `${this.name} ${this.firstname}`
+                },
+
+                age: function () {
+
+                    let today = new Date();
+                    let birthday = new Date(this.birthday)
+                    let diff = today.getTime() - birthday.getTime();
+                    return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+                },
+            },
+
+            filters: {
+                capitalize: function (value) {
+                    return value.charAt(0).toUpperCase() + value.slice(1);
+                },
+            },
+
+        };
+
+
+        let formation = {
+            props: ['formations'],
+            template: `
+             <div>
+                 <h2>Formation</h2>
+                 <ul>
+                 <li v-for="formation of formations">{{formation.school}} de: {{formation.formationBegin}} à: {{formation.formationEnd}}</li>
+                 </ul>
+ 
+             </div>
+             `,
+        }
+
+        let experience = {
+            props: ['experiences'],
+            template: `
+            <div>
+            <h2>Expériences Professionelles</h2>
+            <ul>
+            <li v-for="experience of experiences">{{experience.company}} de: {{experience.experienceBegin}} à: {{experience.experienceEnd}}</li>
+            </ul>
+            </div>
+    `
+        }
+
+        let skill = {
+            props: ['skills'],
+            template: `
+            <div>
+            <h2>Compétences</h2>
+            <ul>
+            <li v-for="skill of skills">{{skill}}</li>
+            </ul>
+            </div>
+            `
+        }
+
+
+        let cv = new Vue({
+            el: '#app',
+
+            data: {
+                name: '',
+                firstName: '',
+                birthday: null,
+                adresse: '',
+                car: false,
+                formations: [],
+                experiences: [],
+                skills: [],
+
+
+            },
+
+            components: {
+                'user': user,
+                'formation': formation,
+                'experience': experience,
+                'skill': skill,
+            },
+
+
+
+            methods: {
+                addForm: function () {
+                    let form = document.getElementById('fpro').value;
+                    let dateD = new Date(document.getElementById('formdebut').value);
+                    let dateF = new Date(document.getElementById('formfin').value);
+                    dateD = dateD.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+                    dateF = dateF.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+
+                    this.formations.push({
+                        school: form,
+                        formationBegin: dateD,
+                        formationEnd: dateF,
+                    }
+                    );
+
+                    document.getElementById('fpro').value = '';
+                    document.getElementById('formdebut').value = '';
+                    document.getElementById('formfin').value = '';
+
+                },
+
+
+                addExp: function () {
+                    let exp = document.getElementById('expro').value;
+                    let dateD = new Date(document.getElementById('expdebut').value);
+                    let dateF = new Date(document.getElementById('expfin').value);
+                    dateD = dateD.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+                    dateF = dateF.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+                    this.experiences.push({
+
+                        company: exp,
+                        experienceBegin: dateD,
+                        experienceEnd: dateF,
+                    }
+                    );
+
+                    document.getElementById('expro').value = '';
+                    document.getElementById('expdebut').value = '';
+                    document.getElementById('expfin').value = '';
+                },
+
+
+                addSkill: function () {
+                    let skill = document.getElementById('comp').value;
+                    this.skills.push(skill);
+                    document.getElementById('comp').value = '';
+                },
+
+
+                save: function () {
+                    let save = JSON.stringify(this.$data)
+                    localStorage.setItem('site_cv', save)
+                    alert('CV sauvegardé')
+                },
+
+                show: function () {
+                    let data = JSON.parse(localStorage.getItem('site_cv'))
+                    for (let key in data) {
+                        this[key] = data[key]
+                    }
+                },
+
+                remove: function () {
+                    localStorage.removeItem('site_cv');
+                }
+            },
+        });
+
+    </script>
+
+</body>
+
+</html>
